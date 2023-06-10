@@ -1,0 +1,4 @@
+{
+  "mongoURI": "mongodb+srv://parameshwarrao:a65b7854n@raocluster.fzpuwyc.mongodb.net/raoDatabase?retryWrites=true&w=majority",
+  "jwtsSecret": "mysecrettoken"
+}
