@@ -3,7 +3,8 @@ const router = express.Router();
 const { check, validationResult } = require('express-validator');
 const auth = require('../../middleware/auth');
 
-const responseFormatter = require('../../libs/employeeResFormat');
+const paramChecker = require('../../libs/checkLib');
+
 
 const employeeDataModel = require('../../models/employeeProfile');
 
@@ -43,21 +44,182 @@ const employeeDataModel = require('../../models/employeeProfile');
 // @route    GET api/employee
 // @desc     Get all employee data
 // @access   Private
-router.get('/', auth, async (req, res) => {
+router.post('/List', auth, async (req, res) => {
+
+  let pagination=0;
+  let skipped=0;
+  let pageSize = 15;
+
   try {
-    const employeeData = await employeeDataModel
+
+    if(!paramChecker.isEmpty(req.body.pageIndex)){    
+    pagination = (req.body.pageIndex && req.body.pageIndex >0) ? req.body.pageIndex : 0 ;    
+    skipped = pageSize*pagination;
+  }
+
+  let query ={};
+
+if(!paramChecker.isEmpty(req.body.Employee_ID)) {
+    query.Employee_ID  = new RegExp(req.body.Employee_ID, "i");
+}
+if(!paramChecker.isEmpty(req.body.Full_Name)) {
+    query.Full_Name  = new RegExp(req.body.Full_Name, "i");
+}
+if(!paramChecker.isEmpty(req.body.Job_Title)) {
+    query.Job_Title  = new RegExp(req.body.Job_Title, "i");
+}
+
+if(!paramChecker.isEmpty(req.body.Department)) {
+  query.Department  = new RegExp(req.body.Department, "i");
+}
+
+if(!paramChecker.isEmpty(req.body.Business_Unit)) {
+  query.Business_Unit  = new RegExp(req.body.Business_Unit, "i");
+}
+
+if(!paramChecker.isEmpty(req.body.Gender)) {
+  query.Gender  = new RegExp(req.body.Gender, "i");
+}
+
+if(!paramChecker.isEmpty(req.body.Ethnicity)) {
+  query.Ethnicity  = new RegExp(req.body.Ethnicity, "i");
+}
+
+if(!paramChecker.isEmpty(req.body.Country)) {
+  query.Country  = new RegExp(req.body.Country, "i");
+}
+
+if(!paramChecker.isEmpty(req.body.City)) {
+  query.City  = new RegExp(req.body.City, "i");
+}
+
+
+
+    /*let employeeData = await employeeDataModel
     .find()
-    .limit(30);
+    .skip(skipped)
+    .limit(pageSize);
+    */
     
-    const formatterdata = responseFormatter.employeeRes(false,"Data is fetched","success",employeeData);
-    console.log(formatterdata);
+    let employeeDatas = await employeeDataModel.aggregate([
+      {
+        "$facet":{
+          "empdata":[
+            { "$match": query},
+            { "$skip": skipped },
+            { "$limit": pageSize }
+          ],
+          "totalCount":[
+            { "$match": query},
+            {"$group":{
+              "_id": null,
+              "count": { "$sum": 1 }
+            }}
+          ]
+        }
+      }
+    ]);
     
-    res.json(employeeData);
+    
+    res.json(employeeDatas[0]);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
   }
 });
+
+
+// @route    GET api/employee/DepartmentOptions
+// @desc     Get all employee data unique department options
+// @access   Private
+router.get('/DepartmentOptions', auth, async (req, res) => {
+  
+  try {
+    const uniqueOption = await employeeDataModel.distinct('Department');
+      
+    
+    res.json(uniqueOption);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// @route    GET api/employee/BussinessUnitOptions
+// @desc     Get all employee data unique bussiness unit options
+// @access   Private
+router.get('/BussinessUnitOptions', auth, async (req, res) => {
+  try {
+    const uniqueOption = await employeeDataModel.distinct('Business_Unit').sort();
+      
+    
+    res.json(uniqueOption);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// @route    GET api/employee/CountryOptions
+// @desc     Get all employee data unique country options
+// @access   Private
+router.get('/CountryOptions', auth, async (req, res) => {
+  try {
+    const uniqueOption = await employeeDataModel.distinct('Country').sort();
+      
+    
+    res.json(uniqueOption);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+
+// @route    GET api/employee/CountryOptions
+// @desc     Get all employee data unique country options
+// @access   Private
+router.get('/CityOptions', auth, async (req, res) => {
+  try {
+    const uniqueOption = await employeeDataModel.distinct('City').sort();
+      
+    
+    res.json(uniqueOption);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// @route    GET api/employee/genderOption
+// @desc     Get all employee data unique gender options
+// @access   Private
+router.get('/GenderOptions', auth, async (req, res) => {
+  try {
+    const uniqueOption = await employeeDataModel.distinct('Gender').sort();
+      
+    
+    res.json(uniqueOption);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+router.get('/EthnicityOptions', auth, async (req, res) => {
+  try {
+    const uniqueOption = await employeeDataModel.distinct('Ethnicity').sort();
+      
+    
+    res.json(uniqueOption);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+
+
 
 // @route    GET api/posts/:id
 // @desc     Get post by ID

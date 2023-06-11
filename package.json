@@ -4,7 +4,8 @@
   "description": "This a employee portal. This is made as a portfolio",
   "main": "server.js",
   "scripts": {
-    "start": "node server"
+    "start": "node server",
+    "server":"nodemon server"
   },
   "repository": {
     "type": "git",
