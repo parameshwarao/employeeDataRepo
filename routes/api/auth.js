@@ -22,6 +22,113 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
+// @route POST api/auth/userExist
+// @desc  check if user exist for password reset
+// @access Public
+
+router.post('/userExist', [
+  check('email', 'Please include a Valid email').isEmail(),
+  check('secertKey', 'please include secert key').not().isEmpty()
+],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      let { body:{email,secertKey}} = req;
+
+      
+      //see if user exists
+      let user = await loggedUser.findOne({ email });
+
+      if (!user) {
+        return res
+          .status(400)
+          .json({ errors: [{ msg: 'user does not exist' }] });
+      }
+
+      if(secertKey != config.get('jwtsSecret')){
+        res.status(400).json({ message:'wrong secerty key!' , wrongKey:true });
+      }
+
+      const payload = {
+        user: {
+          id: user.id,
+        },
+      };
+
+        //return token 
+        jwt.sign(
+          payload,
+          config.get('jwtsSecret'),
+          { expiresIn: 360000 },
+          (err, token) => {
+            if (err) throw err;
+            res.json({ authtoken: token , userExist: true , userData: user });
+          }
+        );        
+      
+
+      
+
+    }
+    catch (err) {
+      console.error(err.message);
+      res.status(500).send('Server Error');
+    }
+  });
+
+// @route POST api/auth/updatePassword
+// @desc  check if user exist for password reset
+// @access Public
+
+router.post('/updatePassword', auth, [
+  check('_id', 'user id is required').not().isEmpty(),
+  check('updatedPassword', 'updated Password needed').not().isEmpty()
+],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+
+
+      //Encrypt password
+
+      let { body :{_id ,updatedPassword}} = req;
+
+        // Check for ObjectId format and post
+   if (!_id.match(/^[0-9a-fA-F]{24}$/)) {
+    return res.status(422).json({ message: 'Invalid params' });
+  } 
+
+      const salt = await bcrypt.genSalt(10);
+
+      hashedpassword = await bcrypt.hash(updatedPassword, salt);
+
+      let userData = await loggedUser.findByIdAndUpdate(_id,{password:hashedpassword});      
+
+      if (!userData) {
+        return res
+          .status(400)
+          .json({ errors: [{ message: 'user does not exist' }] });
+      }
+
+             
+      res.status(200).json({message:"password updated"});      
+
+    }
+    catch (err) {
+      console.error(err.message);
+      res.status(500).send('Server Error');
+    }
+  });
+
+
 // @route POST api/auth
 // @desc  Authenticate user & get token
 // @access Public
