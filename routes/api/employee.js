@@ -9,12 +9,26 @@ const paramChecker = require('../../libs/checkLib');
 const employeeDataModel = require('../../models/employeeProfile');
 
 
-// @route    POST api/posts
-// @desc     Create a post
+// @route    POST api/CreateEmployee
+// @desc     Create a employee Records
 // @access   Private
-/*router.post(
-  '/',
-  [auth, [check('text', 'Text is required').not().isEmpty()]],
+router.post(
+  '/CreateEmployee',
+  [auth, [
+    check('Employee_ID', 'Employee ID is required').not().isEmpty(),
+    check('Full_Name', 'Full Name is required').not().isEmpty(),
+    check('Job_Title', 'Job Title is required').not().isEmpty(),
+    check('Department', 'Job Title is required').not().isEmpty(),
+    check('Business_Unit', 'Business_Unit is required').not().isEmpty(),
+    check('Gender', 'Gender is required').not().isEmpty(),
+    check('Ethnicity', 'Ethnicity is required').not().isEmpty(),
+    check('Age', 'Ethnicity is required').not().isEmpty(),
+    check('Hire_Date', 'Hire_Date is required').not().isEmpty(),
+    check('Annual_Salary', 'Annual_Salary is required').not().isEmpty(),
+    check('Bonus', 'Bonus is required').not().isEmpty(),
+    check('Country', 'Country is required').not().isEmpty(),
+    check('City', 'City is required').not().isEmpty()
+  ]],
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -22,25 +36,61 @@ const employeeDataModel = require('../../models/employeeProfile');
     }
 
     try {
-      const user = await User.findById(req.user.id).select('-password');
+      
 
-      const newPost = new Post({
-        text: req.body.text,
-        name: user.name,
-        avatar: user.avatar,
-        user: req.user.id,
-      });
+      let existingUserEmpID = await employeeDataModel.find({"Employee_ID":req.body.Employee_ID});
 
-      const post = await newPost.save();
+      if(existingUserEmpID.length > 0 ){
+        return res.status(422).json({ message : 'employee already exists'});
+      }
+        let { body :{ 
+          Employee_ID , 
+          Full_Name ,
+          Job_Title,
+          Department,
+          Business_Unit,
+          Gender,
+          Ethnicity,
+          Age,
+          Hire_Date,
+          Annual_Salary,
+          Bonus,
+          Country,
+          City}
+        } = req;
+  
+        const newEmployee = new employeeDataModel({
+          Employee_ID :Employee_ID, 
+          Full_Name :  Full_Name,
+          Job_Title : Job_Title,
+          Department : Department,
+          Business_Unit : Business_Unit,
+          Gender : Gender,
+          Ethnicity : Ethnicity,
+          Age : Age,
+          Hire_Date : Hire_Date,
+          Annual_Salary : Annual_Salary,
+          Bonus : Bonus,
+          Country : Country,
+          City : City
+        });
+  
+        let savedEmployeeDetails = await newEmployee.save();
+  
+        res.json(savedEmployeeDetails);
 
-      res.json(post);
+      
+
+      
+
+      
     } catch (err) {
       console.error(err.message);
       res.status(500).send('Server Error');
     }
   }
 );
-*/
+
 // @route    GET api/employee
 // @desc     Get all employee data
 // @access   Private
@@ -221,19 +271,19 @@ router.get('/EthnicityOptions', auth, async (req, res) => {
 
 
 
-// @route    GET api/posts/:id
-// @desc     Get post by ID
+// @route    GET api/employeeDetail/:id
+// @desc     Get employeeDetail by ID
 // @access   Private
-/*router.get('/:id', auth, async (req, res) => {
+router.get('/employeeDetail/:id', auth, async (req, res) => {
   try {
-    const post = await Post.findById(req.params.id);
+    const employeeDetail = await employeeDataModel.findById(req.params.id);
 
     // Check for ObjectId format and post
-    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/) || !post) {
-      return res.status(404).json({ msg: 'Post not found' });
+    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/) || !employeeDetail) {
+      return res.status(204).json({ message: 'employee details not found!' });
     }
 
-    res.json(post);
+    res.status(200).json(employeeDetail);
   } catch (err) {
     console.error(err.message);
 
@@ -241,26 +291,21 @@ router.get('/EthnicityOptions', auth, async (req, res) => {
   }
 });
 
-// @route    DELETE api/posts/:id
-// @desc     Delete a post
+
+
+// @route    DELETE api/RemoveEmployee/:id
+// @desc     Remove a employee
 // @access   Private
-router.delete('/:id', auth, async (req, res) => {
+router.delete('/RemoveEmployee/:id', auth, async (req, res) => {
   try {
-    const post = await Post.findById(req.params.id);
+    let employeeData = await employeeDataModel.findByIdAndDelete(req.params.id);
 
     // Check for ObjectId format and post
-    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/) || !post) {
-      return res.status(404).json({ msg: 'Post not found' });
-    }
+    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/) || !employeeData) {
+      return res.status(204).json({ message: 'Employee not found' });
+    }    
 
-    // Check user
-    if (post.user.toString() !== req.user.id) {
-      return res.status(401).json({ msg: 'User not authorized' });
-    }
-
-    await post.remove();
-
-    res.json({ msg: 'Post removed' });
+    res.status(200).json({ message: 'Employee Data Removed!' });
   } catch (err) {
     console.error(err.message);
 
@@ -268,122 +313,65 @@ router.delete('/:id', auth, async (req, res) => {
   }
 });
 
-// @route    PUT api/posts/like/:id
-// @desc     Like a post
+// @route    PUT api/updateEmployee/:id
+// @desc     update employee details 
 // @access   Private
-router.put('/like/:id', auth, async (req, res) => {
+router.put('/updateEmployee', auth, async (req, res) => {
+
+  
   try {
-    const post = await Post.findById(req.params.id);
 
-    // Check if the post has already been liked
-    if (post.likes.some((like) => like.user.toString() === req.user.id)) {
-      return res.status(400).json({ msg: 'Post already liked' });
-    }
+   
 
-    post.likes.unshift({ user: req.user.id });
+    let { body :{
+      _id, 
+      Employee_ID , 
+      Full_Name ,
+      Job_Title,
+      Department,
+      Business_Unit,
+      Gender,
+      Ethnicity,
+      Age,
+      Hire_Date,
+      Annual_Salary,
+      Bonus,
+      Country,
+      City}
+    } = req;
 
-    await post.save();
+      // Check for ObjectId format and post
+   if (!_id.match(/^[0-9a-fA-F]{24}$/)) {
+    return res.status(422).json({ message: 'Invalid params' });
+  } 
 
-    return res.json(post.likes);
+    let udpateEmployeeObject = {
+      Employee_ID :  Employee_ID, 
+      Full_Name :  paramChecker.nullValueHandler(Full_Name) ,
+      Job_Title :  paramChecker.nullValueHandler(Job_Title),
+      Department :  paramChecker.nullValueHandler(Department),
+      Business_Unit :  paramChecker.nullValueHandler(Business_Unit),
+      Gender :  paramChecker.nullValueHandler(Gender),
+      Ethnicity :  paramChecker.nullValueHandler(Ethnicity),
+      Age :  paramChecker.nullValueHandler(Age),
+      Hire_Date :  paramChecker.nullValueHandler(Hire_Date),
+      Annual_Salary :  paramChecker.nullValueHandler(Annual_Salary),
+      Bonus :  paramChecker.nullValueHandler(Bonus),
+      Country :  paramChecker.nullValueHandler(Country),
+      City :  paramChecker.nullValueHandler(City)
+    };
+    let employeeData = await employeeDataModel.findByIdAndUpdate(_id,udpateEmployeeObject);
+    
+    if(!employeeData){
+      res.status(204).json({message:"Employee does not exist!"});
+    }   
+
+    res.status(200).json(employeeData);
+    
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
   }
 });
 
-// @route    PUT api/posts/unlike/:id
-// @desc     Unlike a post
-// @access   Private
-router.put('/unlike/:id', auth, async (req, res) => {
-  try {
-    const post = await Post.findById(req.params.id);
-
-    // Check if the post has already been liked
-    if (!post.likes.some((like) => like.user.toString() === req.user.id)) {
-      return res.status(400).json({ msg: 'Post has not yet been liked' });
-    }
-
-    // remove the like
-    post.likes = post.likes.filter(
-      ({ user }) => user.toString() !== req.user.id
-    );
-
-    await post.save();
-
-    return res.json(post.likes);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
-  }
-});
-
-// @route    POST api/posts/comment/:id
-// @desc     Comment on a post
-// @access   Private
-router.post(
-  '/comment/:id',
-  [auth, [check('text', 'Text is required').not().isEmpty()]],
-  async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
-    try {
-      const user = await User.findById(req.user.id).select('-password');
-      const post = await Post.findById(req.params.id);
-
-      const newComment = {
-        text: req.body.text,
-        name: user.name,
-        avatar: user.avatar,
-        user: req.user.id,
-      };
-
-      post.comments.unshift(newComment);
-
-      await post.save();
-
-      res.json(post.comments);
-    } catch (err) {
-      console.error(err.message);
-      res.status(500).send('Server Error');
-    }
-  }
-);
-
-// @route    DELETE api/posts/comment/:id/:comment_id
-// @desc     Delete comment
-// @access   Private
-router.delete('/comment/:id/:comment_id', auth, async (req, res) => {
-  try {
-    const post = await Post.findById(req.params.id);
-
-    // Pull out comment
-    const comment = post.comments.find(
-      (comment) => comment.id === req.params.comment_id
-    );
-    // Make sure comment exists
-    if (!comment) {
-      return res.status(404).json({ msg: 'Comment does not exist' });
-    }
-    // Check user
-    if (comment.user.toString() !== req.user.id) {
-      return res.status(401).json({ msg: 'User not authorized' });
-    }
-
-    post.comments = post.comments.filter(
-      ({ id }) => id !== req.params.comment_id
-    );
-
-    await post.save();
-
-    return res.json(post.comments);
-  } catch (err) {
-    console.error(err.message);
-    return res.status(500).send('Server Error');
-  }
-});
-
-*/
 module.exports = router;

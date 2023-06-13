@@ -11,10 +11,14 @@ let isEmpty = (value) => {
     }
   }
 
+  let emptyValuehandler = (value) =>{
+    return value ? value : "";
+  }
 
   /**
    * exporting functions.
    */
   module.exports = {
-    isEmpty: isEmpty
-  }
+    isEmpty: isEmpty,
+    nullValueHandler : emptyValuehandler
+  };
