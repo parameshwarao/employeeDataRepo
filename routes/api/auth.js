@@ -37,9 +37,9 @@ router.post('/userExist', [
         return res.status(400).json({ errors: errors.array() });
       }
 
-      let { body:{email,secertKey}} = req;
+      let { body: { email, secertKey } } = req;
 
-      
+
       //see if user exists
       let user = await loggedUser.findOne({ email });
 
@@ -49,8 +49,8 @@ router.post('/userExist', [
           .json({ errors: [{ msg: 'user does not exist' }] });
       }
 
-      if(secertKey != config.get('jwtsSecret')){
-        res.status(400).json({ message:'wrong secerty key!' , wrongKey:true });
+      if (secertKey != config.get('jwtsSecret')) {
+        res.status(400).json({ errors: [{ msg: 'wrong secerty key!', wrongKey: true }] });
       }
 
       const payload = {
@@ -59,24 +59,24 @@ router.post('/userExist', [
         },
       };
 
-        //return token 
-        jwt.sign(
-          payload,
-          config.get('jwtsSecret'),
-          { expiresIn: 360000 },
-          (err, token) => {
-            if (err) throw err;
-            res.json({ authtoken: token , userExist: true , userData: user });
-          }
-        );        
-      
+      //return token 
+      jwt.sign(
+        payload,
+        config.get('jwtsSecret'),
+        { expiresIn: 360000 },
+        (err, token) => {
+          if (err) throw err;
+          res.json({ authtoken: token, userExist: true, userData: user });
+        }
+      );
 
-      
+
+
 
     }
     catch (err) {
       console.error(err.message);
-      res.status(500).send('Server Error');
+      res.status(500).json({ errors: [{ msg: 'internal server error!' }] });
     }
   });
 
@@ -99,18 +99,18 @@ router.post('/updatePassword', auth, [
 
       //Encrypt password
 
-      let { body :{_id ,updatedPassword}} = req;
+      let { body: { _id, updatedPassword } } = req;
 
-        // Check for ObjectId format and post
-   if (!_id.match(/^[0-9a-fA-F]{24}$/)) {
-    return res.status(422).json({ message: 'Invalid params' });
-  } 
+      // Check for ObjectId format and post
+      if (!_id.match(/^[0-9a-fA-F]{24}$/)) {
+        return res.status(422).json({ message: 'Invalid params' });
+      }
 
       const salt = await bcrypt.genSalt(10);
 
       hashedpassword = await bcrypt.hash(updatedPassword, salt);
 
-      let userData = await loggedUser.findByIdAndUpdate(_id,{password:hashedpassword});      
+      let userData = await loggedUser.findByIdAndUpdate(_id, { password: hashedpassword });
 
       if (!userData) {
         return res
@@ -118,8 +118,8 @@ router.post('/updatePassword', auth, [
           .json({ errors: [{ message: 'user does not exist' }] });
       }
 
-             
-      res.status(200).json({message:"password updated"});      
+
+      res.status(200).json({ message: "password updated" });
 
     }
     catch (err) {
