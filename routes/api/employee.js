@@ -36,54 +36,54 @@ router.post(
     }
 
     try {
-      
 
-      let existingUserEmpID = await employeeDataModel.find({"Employee_ID":req.body.Employee_ID});
 
-      if(existingUserEmpID.length > 0 ){
-        return res.status(422).json({ message : 'employee already exists'});
+      let existingUserEmpID = await employeeDataModel.find({ "Employee_ID": req.body.Employee_ID });
+
+      if (existingUserEmpID.length > 0) {
+        return res.status(422).json({ message: 'employee already exists' });
       }
-        let { body :{ 
-          Employee_ID , 
-          Full_Name ,
-          Job_Title,
-          Department,
-          Business_Unit,
-          Gender,
-          Ethnicity,
-          Age,
-          Hire_Date,
-          Annual_Salary,
-          Bonus,
-          Country,
-          City}
-        } = req;
-  
-        const newEmployee = new employeeDataModel({
-          Employee_ID :Employee_ID, 
-          Full_Name :  Full_Name,
-          Job_Title : Job_Title,
-          Department : Department,
-          Business_Unit : Business_Unit,
-          Gender : Gender,
-          Ethnicity : Ethnicity,
-          Age : Age,
-          Hire_Date : Hire_Date,
-          Annual_Salary : Annual_Salary,
-          Bonus : Bonus,
-          Country : Country,
-          City : City
-        });
-  
-        let savedEmployeeDetails = await newEmployee.save();
-  
-        res.json(savedEmployeeDetails);
+      let { body: {
+        Employee_ID,
+        Full_Name,
+        Job_Title,
+        Department,
+        Business_Unit,
+        Gender,
+        Ethnicity,
+        Age,
+        Hire_Date,
+        Annual_Salary,
+        Bonus,
+        Country,
+        City }
+      } = req;
 
-      
+      const newEmployee = new employeeDataModel({
+        Employee_ID: Employee_ID,
+        Full_Name: Full_Name,
+        Job_Title: Job_Title,
+        Department: Department,
+        Business_Unit: Business_Unit,
+        Gender: Gender,
+        Ethnicity: Ethnicity,
+        Age: Age,
+        Hire_Date: Hire_Date,
+        Annual_Salary: Annual_Salary,
+        Bonus: Bonus,
+        Country: Country,
+        City: City
+      });
 
-      
+      let savedEmployeeDetails = await newEmployee.save();
 
-      
+      res.json(savedEmployeeDetails);
+
+
+
+
+
+
     } catch (err) {
       console.error(err.message);
       res.status(500).send('Server Error');
@@ -96,52 +96,55 @@ router.post(
 // @access   Private
 router.post('/List', auth, async (req, res) => {
 
-  let pagination=0;
-  let skipped=0;
+  let pagination = 0;
+  let skipped = 0;
   let pageSize = 15;
 
   try {
+    if (!paramChecker.isEmpty(req.body.recordPerPage)) {
+      pageSize = req.body.recordPerPage;
+    }
 
-    if(!paramChecker.isEmpty(req.body.pageIndex)){    
-    pagination = (req.body.pageIndex && req.body.pageIndex >0) ? req.body.pageIndex : 0 ;    
-    skipped = pageSize*pagination;
-  }
+    if (!paramChecker.isEmpty(req.body.pageIndex)) {
+      pagination = (req.body.pageIndex && req.body.pageIndex > 0) ? req.body.pageIndex : 0;
+      skipped = pageSize * pagination;
+    }
 
-  let query ={};
+    let query = {};
 
-if(!paramChecker.isEmpty(req.body.Employee_ID)) {
-    query.Employee_ID  = new RegExp(req.body.Employee_ID, "i");
-}
-if(!paramChecker.isEmpty(req.body.Full_Name)) {
-    query.Full_Name  = new RegExp(req.body.Full_Name, "i");
-}
-if(!paramChecker.isEmpty(req.body.Job_Title)) {
-    query.Job_Title  = new RegExp(req.body.Job_Title, "i");
-}
+    if (!paramChecker.isEmpty(req.body.Employee_ID)) {
+      query.Employee_ID = new RegExp(req.body.Employee_ID, "i");
+    }
+    if (!paramChecker.isEmpty(req.body.Full_Name)) {
+      query.Full_Name = new RegExp(req.body.Full_Name, "i");
+    }
+    if (!paramChecker.isEmpty(req.body.Job_Title)) {
+      query.Job_Title = new RegExp(req.body.Job_Title, "i");
+    }
 
-if(!paramChecker.isEmpty(req.body.Department)) {
-  query.Department  = new RegExp(req.body.Department, "i");
-}
+    if (!paramChecker.isEmpty(req.body.Department)) {
+      query.Department = new RegExp(req.body.Department, "i");
+    }
 
-if(!paramChecker.isEmpty(req.body.Business_Unit)) {
-  query.Business_Unit  = new RegExp(req.body.Business_Unit, "i");
-}
+    if (!paramChecker.isEmpty(req.body.Business_Unit)) {
+      query.Business_Unit = new RegExp(req.body.Business_Unit, "i");
+    }
 
-if(!paramChecker.isEmpty(req.body.Gender)) {
-  query.Gender  = new RegExp(req.body.Gender, "i");
-}
+    if (!paramChecker.isEmpty(req.body.Gender)) {
+      query.Gender = new RegExp(req.body.Gender, "i");
+    }
 
-if(!paramChecker.isEmpty(req.body.Ethnicity)) {
-  query.Ethnicity  = new RegExp(req.body.Ethnicity, "i");
-}
+    if (!paramChecker.isEmpty(req.body.Ethnicity)) {
+      query.Ethnicity = new RegExp(req.body.Ethnicity, "i");
+    }
 
-if(!paramChecker.isEmpty(req.body.Country)) {
-  query.Country  = new RegExp(req.body.Country, "i");
-}
+    if (!paramChecker.isEmpty(req.body.Country)) {
+      query.Country = new RegExp(req.body.Country, "i");
+    }
 
-if(!paramChecker.isEmpty(req.body.City)) {
-  query.City  = new RegExp(req.body.City, "i");
-}
+    if (!paramChecker.isEmpty(req.body.City)) {
+      query.City = new RegExp(req.body.City, "i");
+    }
 
 
 
@@ -150,27 +153,29 @@ if(!paramChecker.isEmpty(req.body.City)) {
     .skip(skipped)
     .limit(pageSize);
     */
-    
+
     let employeeDatas = await employeeDataModel.aggregate([
       {
-        "$facet":{
-          "empdata":[
-            { "$match": query},
+        "$facet": {
+          "empdata": [
+            { "$match": query },
             { "$skip": skipped },
             { "$limit": pageSize }
           ],
-          "totalCount":[
-            { "$match": query},
-            {"$group":{
-              "_id": null,
-              "count": { "$sum": 1 }
-            }}
+          "totalCount": [
+            { "$match": query },
+            {
+              "$group": {
+                "_id": null,
+                "count": { "$sum": 1 }
+              }
+            }
           ]
         }
       }
     ]);
-    
-    
+
+
     res.json(employeeDatas[0]);
   } catch (err) {
     console.error(err.message);
@@ -183,11 +188,11 @@ if(!paramChecker.isEmpty(req.body.City)) {
 // @desc     Get all employee data unique department options
 // @access   Private
 router.get('/DepartmentOptions', auth, async (req, res) => {
-  
+
   try {
     const uniqueOption = await employeeDataModel.distinct('Department');
-      
-    
+
+
     res.json(uniqueOption);
   } catch (err) {
     console.error(err.message);
@@ -201,8 +206,8 @@ router.get('/DepartmentOptions', auth, async (req, res) => {
 router.get('/BussinessUnitOptions', auth, async (req, res) => {
   try {
     const uniqueOption = await employeeDataModel.distinct('Business_Unit').sort();
-      
-    
+
+
     res.json(uniqueOption);
   } catch (err) {
     console.error(err.message);
@@ -216,8 +221,8 @@ router.get('/BussinessUnitOptions', auth, async (req, res) => {
 router.get('/CountryOptions', auth, async (req, res) => {
   try {
     const uniqueOption = await employeeDataModel.distinct('Country').sort();
-      
-    
+
+
     res.json(uniqueOption);
   } catch (err) {
     console.error(err.message);
@@ -232,8 +237,8 @@ router.get('/CountryOptions', auth, async (req, res) => {
 router.get('/CityOptions', auth, async (req, res) => {
   try {
     const uniqueOption = await employeeDataModel.distinct('City').sort();
-      
-    
+
+
     res.json(uniqueOption);
   } catch (err) {
     console.error(err.message);
@@ -247,8 +252,8 @@ router.get('/CityOptions', auth, async (req, res) => {
 router.get('/GenderOptions', auth, async (req, res) => {
   try {
     const uniqueOption = await employeeDataModel.distinct('Gender').sort();
-      
-    
+
+
     res.json(uniqueOption);
   } catch (err) {
     console.error(err.message);
@@ -259,8 +264,8 @@ router.get('/GenderOptions', auth, async (req, res) => {
 router.get('/EthnicityOptions', auth, async (req, res) => {
   try {
     const uniqueOption = await employeeDataModel.distinct('Ethnicity').sort();
-      
-    
+
+
     res.json(uniqueOption);
   } catch (err) {
     console.error(err.message);
@@ -303,7 +308,7 @@ router.delete('/RemoveEmployee/:id', auth, async (req, res) => {
     // Check for ObjectId format and post
     if (!req.params.id.match(/^[0-9a-fA-F]{24}$/) || !employeeData) {
       return res.status(204).json({ message: 'Employee not found' });
-    }    
+    }
 
     res.status(200).json({ message: 'Employee Data Removed!' });
   } catch (err) {
@@ -318,15 +323,15 @@ router.delete('/RemoveEmployee/:id', auth, async (req, res) => {
 // @access   Private
 router.put('/updateEmployee', auth, async (req, res) => {
 
-  
+
   try {
 
-   
 
-    let { body :{
-      _id, 
-      Employee_ID , 
-      Full_Name ,
+
+    let { body: {
+      _id,
+      Employee_ID,
+      Full_Name,
       Job_Title,
       Department,
       Business_Unit,
@@ -337,37 +342,37 @@ router.put('/updateEmployee', auth, async (req, res) => {
       Annual_Salary,
       Bonus,
       Country,
-      City}
+      City }
     } = req;
 
-      // Check for ObjectId format and post
-   if (!_id.match(/^[0-9a-fA-F]{24}$/)) {
-    return res.status(422).json({ message: 'Invalid params' });
-  } 
+    // Check for ObjectId format and post
+    if (!_id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(422).json({ message: 'Invalid params' });
+    }
 
     let udpateEmployeeObject = {
-      Employee_ID :  Employee_ID, 
-      Full_Name :  paramChecker.nullValueHandler(Full_Name) ,
-      Job_Title :  paramChecker.nullValueHandler(Job_Title),
-      Department :  paramChecker.nullValueHandler(Department),
-      Business_Unit :  paramChecker.nullValueHandler(Business_Unit),
-      Gender :  paramChecker.nullValueHandler(Gender),
-      Ethnicity :  paramChecker.nullValueHandler(Ethnicity),
-      Age :  paramChecker.nullValueHandler(Age),
-      Hire_Date :  paramChecker.nullValueHandler(Hire_Date),
-      Annual_Salary :  paramChecker.nullValueHandler(Annual_Salary),
-      Bonus :  paramChecker.nullValueHandler(Bonus),
-      Country :  paramChecker.nullValueHandler(Country),
-      City :  paramChecker.nullValueHandler(City)
+      Employee_ID: Employee_ID,
+      Full_Name: paramChecker.nullValueHandler(Full_Name),
+      Job_Title: paramChecker.nullValueHandler(Job_Title),
+      Department: paramChecker.nullValueHandler(Department),
+      Business_Unit: paramChecker.nullValueHandler(Business_Unit),
+      Gender: paramChecker.nullValueHandler(Gender),
+      Ethnicity: paramChecker.nullValueHandler(Ethnicity),
+      Age: paramChecker.nullValueHandler(Age),
+      Hire_Date: paramChecker.nullValueHandler(Hire_Date),
+      Annual_Salary: paramChecker.nullValueHandler(Annual_Salary),
+      Bonus: paramChecker.nullValueHandler(Bonus),
+      Country: paramChecker.nullValueHandler(Country),
+      City: paramChecker.nullValueHandler(City)
     };
-    let employeeData = await employeeDataModel.findByIdAndUpdate(_id,udpateEmployeeObject);
-    
-    if(!employeeData){
-      res.status(204).json({message:"Employee does not exist!"});
-    }   
+    let employeeData = await employeeDataModel.findByIdAndUpdate(_id, udpateEmployeeObject);
+
+    if (!employeeData) {
+      res.status(204).json({ message: "Employee does not exist!" });
+    }
 
     res.status(200).json(employeeData);
-    
+
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
