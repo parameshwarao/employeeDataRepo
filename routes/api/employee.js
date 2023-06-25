@@ -41,7 +41,7 @@ router.post(
       let existingUserEmpID = await employeeDataModel.find({ "Employee_ID": req.body.Employee_ID });
 
       if (existingUserEmpID.length > 0) {
-        return res.status(422).json({ message: 'employee already exists' });
+        return res.status(422).json({ errors:[ {msg: 'employee already exists!'}] });
       }
       let { body: {
         Employee_ID,
