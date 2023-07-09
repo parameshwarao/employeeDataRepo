@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/parameshwarao/employeeDataRepo#readme",
   "dependencies": {
+    "@socket.io/redis-adapter": "^8.2.1",
     "bcryptjs": "^2.4.3",
     "config": "^3.3.9",
     "cors": "^2.8.5",
@@ -26,7 +27,9 @@
     "gravatar": "^1.8.2",
     "jsonwebtoken": "^9.0.0",
     "mongoose": "^7.2.3",
-    "request": "^2.88.2"
+    "redis": "^4.6.7",
+    "request": "^2.88.2",
+    "socket.io": "^4.7.1"
   },
   "devDependencies": {
     "concurrently": "^8.2.0",

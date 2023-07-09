@@ -189,4 +189,35 @@ router.post(
   }
 );
 
+
+// @route POST api/auth/getUserName
+// @desc  Authenticate user & get token
+// @access Public
+
+router.get(
+  '/getUserName',
+  auth,
+ 
+  async (req, res) => {
+    
+
+    //destructure user id from auth middleware
+    const { user : {id} } = req;
+
+    try {
+      //see if user exists
+      let userDetails = await loggedUser.findById(id);
+
+      if(!userDetails){
+        res.status(500).json({ errors: [{ msg: 'user doesnt event exist' }] });
+      }
+
+      res.status(200).json(userDetails);
+    } catch (err) {
+      console.error(err.message);
+      res.status(500).send('Server Error');
+    }
+  }
+);
+
 module.exports = router;

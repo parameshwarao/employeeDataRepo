@@ -2,10 +2,14 @@ const express = require('express');
 const connectDB = require('./config/db');
 var cors = require('cors');
 
+const connectSocket = require('./realTimeChannel/employeeChannel');
+
 const app = express();
 
 //connect database
 connectDB();
+connectSocket(app);
+
 
 //Init Middleware
 app.use(express.json({ extended: false }));
@@ -18,8 +22,6 @@ app.get('/', (req, res) => res.send(`API running hk`));
 app.use('/api/users', require('./routes/api/user'));
 app.use('/api/auth', require('./routes/api/auth'));
 app.use('/api/employee', require('./routes/api/employee'));
-/*app.use('/api/profile', require('./routes/api/profile'));*/
 
-const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => console.log(`server started at ${PORT}`));
+

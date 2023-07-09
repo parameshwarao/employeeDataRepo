@@ -1,4 +1,7 @@
 {
   "mongoURI": "mongodb+srv://parameshwarrao:a65b7854n@raocluster.fzpuwyc.mongodb.net/raoDatabase?retryWrites=true&w=majority",
-  "jwtsSecret": "mysecrettoken"
+  "jwtsSecret": "mysecrettoken",
+  "redisPassword":"a65b7854n",
+  "redisHost":"redis-10778.c279.us-central1-1.gce.cloud.redislabs.com",
+  "redisPort":"10778"
 }
